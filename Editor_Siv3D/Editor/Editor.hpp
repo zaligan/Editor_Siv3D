@@ -9,6 +9,11 @@ public:
 	[[nodiscard]]
 	bool init();
 
+	/// @brief configディレクトリを準備します。
+	/// @return 準備に成功した場合 true,それ以外の場合はfalse
+	[[nodiscard]]
+	bool prepareConfigDirectory();
+
 	/// @brief 通知（詳細）を出力します。
 	/// @param text 通知内容
 	static void ShowVerbose(StringView text);
@@ -30,6 +35,11 @@ public:
 	static void ShowError(StringView text);
 
 private:
+	/// @brief configディレクトリのパス
+	FilePath m_configDirectory = U"config/";
+
+	/// @brief configディレクトリの監視オブジェクト
+	DirectoryWatcher m_configDirectoryWatcher;
 
 };
 

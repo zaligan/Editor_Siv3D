@@ -6,10 +6,14 @@ void Main()
 	Window::Resize(1280, 720);
 
 	Editor editor;
-	if (!editor.init())
+	if (not editor.init())
 	{
 		throw Error{ U"Editorの初期化に失敗しました" };
-		return;
+	}
+
+	if (not editor.prepareConfigDirectory())
+	{
+		throw Error{ U"configディレクトリの準備に失敗しました" };
 	}
 
 	Scene::SetBackground(ColorF{ 0.6, 0.8, 0.7 });

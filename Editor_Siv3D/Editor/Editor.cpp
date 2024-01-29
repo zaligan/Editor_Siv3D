@@ -10,7 +10,37 @@ bool Editor::init()
 
 	NotificationAddon::SetStyle({ .width = 900 });
 
-	return (true);
+	return true;
+}
+
+bool Editor::prepareConfigDirectory()
+{
+	if (not FileSystem::IsDirectory(m_configDirectory))
+	{
+		if (not FileSystem::CreateDirectories(m_configDirectory))
+		{
+			ShowError(U"configフォルダ`{}`の作成に失敗しました。同名のファイルが既に存在します。"_fmt(m_configDirectory));
+			return false;
+		}
+
+		ShowSuccess(U"configフォルダ`{}`を作成しました。"_fmt(m_configDirectory));
+	}
+	else
+	{
+		ShowSuccess(U"config フォルダ`{}`が見つかりました"_fmt(m_configDirectory));
+	}
+
+	m_configDirectoryWatcher = DirectoryWatcher{ m_configDirectory };
+
+	if (not m_configDirectoryWatcher)
+	{
+		ShowError(U"configディレクトリ`{}`の監視を開始できませんでした。"_fmt(m_configDirectory));
+		return false;
+	}
+
+	ShowSuccess(U"configディレクトリ`{}`の監視を開始しました。"_fmt(m_configDirectory));
+
+	return true;
 }
 
 void Editor::ShowVerbose([[maybe_unused]]const StringView text)
