@@ -13,9 +13,11 @@ bool Editor::init()
 	return (true);
 }
 
-void Editor::ShowVerbose(const StringView text)
+void Editor::ShowVerbose([[maybe_unused]]const StringView text)
 {
+# if SIV3D_BUILD(DEBUG)
 	NotificationAddon::Show(text, NotificationAddon::Type::Normal);
+# endif
 }
 
 void Editor::ShowInfo(const StringView text)

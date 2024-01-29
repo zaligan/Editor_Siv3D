@@ -16,7 +16,7 @@ void Main()
 
 	while (System::Update())
 	{
-		if (SimpleGUI::Button(U"normal", Vec2{ 1100, 40 }, 160))
+		if (SimpleGUI::Button(U"verbose", Vec2{ 1100, 40 }, 160))
 		{
 			Editor::ShowVerbose(U"verbose");
 		}
@@ -36,7 +36,7 @@ void Main()
 			Editor::ShowWarning(U"warning");
 		}
 
-		if (SimpleGUI::Button(U"failure", Vec2{ 1100, 200 }, 160))
+		if (SimpleGUI::Button(U"error", Vec2{ 1100, 200 }, 160))
 		{
 			Editor::ShowError(U"error");
 		}
