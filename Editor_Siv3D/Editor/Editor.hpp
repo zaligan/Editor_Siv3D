@@ -14,6 +14,9 @@ public:
 	[[nodiscard]]
 	bool prepareConfigDirectory();
 
+	/// @brief エディタの状態を更新します。
+	void update();
+
 	/// @brief 通知（詳細）を出力します。
 	/// @param text 通知内容
 	static void ShowVerbose(StringView text);

@@ -20,6 +20,8 @@ void Main()
 
 	while (System::Update())
 	{
+		editor.update();
+
 		if (SimpleGUI::Button(U"verbose", Vec2{ 1100, 40 }, 160))
 		{
 			Editor::ShowVerbose(U"verbose");

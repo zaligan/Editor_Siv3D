@@ -1,6 +1,25 @@
 ﻿# include "Editor.hpp"
 # include "NotificationAddon.hpp"
 
+namespace
+{
+	[[nodiscard]]
+	static String ToString(const FileAction fileAction)
+	{
+		switch (fileAction)
+		{
+		case FileAction::Added:
+			return U"Added";
+		case FileAction::Modified:
+			return U"Modified";
+		case FileAction::Removed:
+			return U"Removed";
+		default:
+			return U"Unknown";
+		}
+	}
+}
+
 bool Editor::init()
 {
 	// アドオンを登録する
@@ -41,6 +60,15 @@ bool Editor::prepareConfigDirectory()
 	ShowSuccess(U"configディレクトリ`{}`の監視を開始しました。"_fmt(m_configDirectory));
 
 	return true;
+}
+
+void Editor::update()
+{
+	// 絶対パスと、アクションの内容を取得する
+	for (auto&& [path, fileAction] : m_configDirectoryWatcher.retrieveChanges())
+	{
+		ShowVerbose(U"File {}:`{}`"_fmt(ToString(fileAction), path));
+	}
 }
 
 void Editor::ShowVerbose([[maybe_unused]]const StringView text)
