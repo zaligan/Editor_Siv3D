@@ -44,5 +44,8 @@ private:
 	/// @brief configディレクトリの監視オブジェクト
 	DirectoryWatcher m_configDirectoryWatcher;
 
+	/// @brief configディレクトリで監視する拡張子
+	Array<String> m_configDirectoryAllowExtensions = { U"json",U"txt",U"ini" };
+
 };
 

@@ -25,7 +25,7 @@ bool Editor::init()
 	// アドオンを登録する
 	Addon::Register<NotificationAddon>(U"NotificationAddon");
 
-	NotificationAddon::SetLifeTime(5.0);
+	NotificationAddon::SetLifeTime(10.0);
 
 	NotificationAddon::SetStyle({ .width = 900 });
 
@@ -65,8 +65,15 @@ bool Editor::prepareConfigDirectory()
 void Editor::update()
 {
 	// 絶対パスと、アクションの内容を取得する
-	for (auto&& [path, fileAction] : m_configDirectoryWatcher.retrieveChanges())
+	for (const auto& [path, fileAction] : m_configDirectoryWatcher.retrieveChanges())
 	{
+		//監視対象でない拡張子の場合無視する
+		const String extension = FileSystem::Extension(path);
+		if (not m_configDirectoryAllowExtensions.contains(extension))
+		{
+			continue;
+		}
+
 		ShowVerbose(U"File {}:`{}`"_fmt(ToString(fileAction), path));
 	}
 }
