@@ -79,6 +79,39 @@ void Editor::update()
 		}
 
 		ShowVerbose(U"File {}:`{}`"_fmt(ToString(fileAction), path));
+
+		//バッファーに無いファイルの変更の場合バッファーにpathと時間を追加
+		if (not m_changeFileBuffer.contains(path))
+		{
+			m_changeFileBuffer.emplace(path,Time::GetMillisec());
+			continue;
+		}
+
+		//既にバッファーにあるファイルの変更の場合、変更時間を更新する	
+		for (auto it = m_changeFileBuffer.begin(); it != m_changeFileBuffer.end(); ++it)
+		{
+			if (it->first != path)
+			{
+				continue;
+			}
+
+			it->second = Time::GetMillisec();
+		}
+
+	}
+
+	//最終更新から一定時間変更のないファイルを読み込む
+	for (auto it = m_changeFileBuffer.begin(); it != m_changeFileBuffer.end();)
+	{
+		if (it->second + m_bufferReadDelay > Time::GetMillisec())
+		{
+			++it;
+			continue;
+		}
+
+		ShowVerbose(U"File `{}`が更新されました。"_fmt(it->first));
+		
+		it = m_changeFileBuffer.erase(it);
 	}
 }
 
