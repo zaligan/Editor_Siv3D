@@ -25,8 +25,10 @@ bool Editor::init()
 	// アドオンを登録する
 	Addon::Register<NotificationAddon>(U"NotificationAddon");
 
+	//画面上に通知を表示しておく時間(秒)
 	NotificationAddon::SetLifeTime(10.0);
 
+	//通知の横幅を設定する
 	NotificationAddon::SetStyle({ .width = 900 });
 
 	return true;
@@ -34,21 +36,23 @@ bool Editor::init()
 
 bool Editor::prepareConfigDirectory()
 {
+	//config ディレクトリが見つからない場合作成する
 	if (not FileSystem::IsDirectory(m_configDirectory))
 	{
 		if (not FileSystem::CreateDirectories(m_configDirectory))
 		{
-			ShowError(U"configフォルダ`{}`の作成に失敗しました。同名のファイルが既に存在します。"_fmt(m_configDirectory));
+			ShowError(U"configディレクトリ`{}`の作成に失敗しました。同名のファイルが既に存在します。"_fmt(m_configDirectory));
 			return false;
 		}
 
-		ShowSuccess(U"configフォルダ`{}`を作成しました。"_fmt(m_configDirectory));
+		ShowSuccess(U"configディレクトリ`{}`を作成しました。"_fmt(m_configDirectory));
 	}
 	else
 	{
-		ShowSuccess(U"config フォルダ`{}`が見つかりました"_fmt(m_configDirectory));
+		ShowSuccess(U"config ディレクトリ`{}`が見つかりました"_fmt(m_configDirectory));
 	}
 
+	//config ディレクトリを監視する
 	m_configDirectoryWatcher = DirectoryWatcher{ m_configDirectory };
 
 	if (not m_configDirectoryWatcher)

@@ -19,6 +19,7 @@ public:
 
 	/// @brief 通知（詳細）を出力します。
 	/// @param text 通知内容
+	/// @remark Relese ビルドでは通知は出力されません。
 	static void ShowVerbose(StringView text);
 
 	/// @brief 通知（情報）を出力します。
