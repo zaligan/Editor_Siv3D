@@ -148,9 +148,7 @@ struct CircleObject :IConfig
 {
 	static constexpr StringView DataType = U"circleObject";
 
-	Vec2 center{ 0,0 };
-	
-	double radius = 0;
+	Circle circle{0,0,0};
 
 	[[nodiscard]]
 	StringView dataType() const override
@@ -170,10 +168,10 @@ struct CircleObject :IConfig
 		}
 		const auto& circle = json[U"circle"];
 		const auto& center = circle[U"center"];
-		result.center = Vec2{ center[U"x"].get<double>(),center[U"y"].get<double>() };
+		result.circle.center = Vec2{ center[U"x"].get<double>(),center[U"y"].get<double>() };
 
 		const auto& radius = circle[U"radius"];
-		result.radius = radius[U"value"].get<double>();
+		result.circle.r = radius[U"value"].get<double>();
 		
 		Editor::ShowSuccess(U"CircleObject のパースに成功しました。");
 		return result;
@@ -211,6 +209,7 @@ void Main()
 {
 	Window::Resize(1280, 720);
 
+	//Editorの準備をします
 	Editor editor;
 	if (not editor.init())
 	{
@@ -230,6 +229,7 @@ void Main()
 	{
 		editor.update();
 
+		//変更のあった config ディレクトリを全て調べます。
 		for (const auto& changedConfigFile : editor.retrieveChangedConfigFiles())
 		{
 			const FilePath friendlyPath = FileSystem::RelativePath(changedConfigFile);
@@ -241,6 +241,7 @@ void Main()
 				continue;
 			}
 
+			//ここから下をjsonの読み込み用として一つの関数にまとめられそう
 			const auto [json, dataType] = LoadConfigJSON(changedConfigFile, friendlyPath);
 
 			if (dataType == SolidColorBackground::DataType)
@@ -254,8 +255,9 @@ void Main()
 			}
 		}
 
-		Circle{ circleObject.center,circleObject.radius }.draw();
+		circleObject.circle.draw();
 
+		//通知用ボタンを作成します
 		if (SimpleGUI::Button(U"verbose", Vec2{ 1100, 40 }, 160))
 		{
 			Editor::ShowVerbose(U"verbose");
