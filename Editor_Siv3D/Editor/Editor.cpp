@@ -17,6 +17,7 @@ bool Editor::init()
 
 bool Editor::prepareConfigDirectory()
 {
+	//DirectoryMonitorで監視する config ディレクトリのパスとファイルの拡張子を指定します。
 	if (not m_configDirectoryMonitor.init(U"config/", { U"json",U"ini",U"txt"}))
 	{
 		return false;

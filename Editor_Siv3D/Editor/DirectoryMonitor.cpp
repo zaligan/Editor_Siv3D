@@ -22,6 +22,11 @@ namespace
 
 bool DirectoryMonitor::init(FilePathView directory, const Array<String>& allowExtensions, int32 cooldownTimeMillisec)
 {
+	m_directory = directory;
+	m_allowExtensions = allowExtensions;
+	m_cooldownTimeMillisec = cooldownTimeMillisec;
+	m_directoryWatcher = DirectoryWatcher{ m_directory };
+
 	//ディレクトリが見つからない場合作成する
 	if (not FileSystem::IsDirectory(m_directory))
 	{
@@ -37,11 +42,6 @@ bool DirectoryMonitor::init(FilePathView directory, const Array<String>& allowEx
 	{
 		Editor::ShowSuccess(U"ディレクトリ`{}`が見つかりました"_fmt(m_directory));
 	}
-
-	m_directory = directory;
-	m_allowExtensions = allowExtensions;
-	m_cooldownTimeMillisec = cooldownTimeMillisec;
-	m_directoryWatcher = DirectoryWatcher{m_directory};
 
 	if (not m_directoryWatcher)
 	{

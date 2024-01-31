@@ -44,8 +44,7 @@ public:
 
 private:
 
+	/// @brief config ディレクトリを監視します。
 	DirectoryMonitor m_configDirectoryMonitor;
-
-
 };
 
