@@ -1,5 +1,6 @@
 ﻿# pragma once
 # include <Siv3D.hpp>
+# include "DirectoryMonitor.hpp"
 
 class Editor
 {
@@ -16,6 +17,9 @@ public:
 
 	/// @brief エディタの状態を更新します。
 	void update();
+
+	[[nodiscard]]
+	Array<FilePath> retrieveChangedConfigFiles();
 
 	/// @brief 通知（詳細）を出力します。
 	/// @param text 通知内容
@@ -39,19 +43,9 @@ public:
 	static void ShowError(StringView text);
 
 private:
-	/// @brief configディレクトリのパス
-	FilePath m_configDirectory = U"config/";
 
-	/// @brief configディレクトリの監視オブジェクト
-	DirectoryWatcher m_configDirectoryWatcher;
+	DirectoryMonitor m_configDirectoryMonitor;
 
-	/// @brief configディレクトリで監視する拡張子
-	Array<String> m_configDirectoryAllowExtensions = { U"json",U"txt",U"ini" };
 
-	/// @brief バッファ内のファイルが最終更新からこの時間（ミリ秒）経過後に読み込まれる閾値
-	int32 m_bufferReadDelay = 100;
-
-	/// @brief 変更されたファイルのパスと更新時間（ミリ秒）
-	HashTable<FilePath,uint64> m_changeFileBuffer;
 };
 
