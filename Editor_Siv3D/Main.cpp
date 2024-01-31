@@ -11,9 +11,9 @@ struct IConfig
 
 struct SolidColorBackground : IConfig
 {
-	static constexpr StringView DataType = U"solidColerBackgrond";
+	static constexpr StringView DataType = U"solidColorBackgrond";
 
-	ColorF color{ 0.0 };
+	ColorF color{ 1.0,1.0,1.0,1.0 };
 
 	[[nodiscard]]
 	StringView dataType() const override
@@ -25,14 +25,51 @@ struct SolidColorBackground : IConfig
 	static SolidColorBackground Parse(const JSON& json)
 	{
 		SolidColorBackground result;
-		if (not json.contains(U"color") || not json[U"color"].isString())
+		if (not json.contains(U"color") || not json[U"color"].isObject())
 		{
 			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
 			return result;
 		}
 
-		result.color = ColorF{ json[U"color"].getString() };
+		const auto& color = json[U"color"];
 
+		if (not color.contains(U"type") || not color[U"type"].isString())
+		{
+			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
+			return result;
+		}
+
+		if (color[U"type"] != U"ColorF")
+		{
+			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
+			return result;
+		}
+
+		if (not color.contains(U"r") || not color[U"r"].isNumber())
+		{
+			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
+			return result;
+		}
+
+		if (not color.contains(U"g") || not color[U"g"].isNumber())
+		{
+			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
+			return result;
+		}
+
+		if (not color.contains(U"b") || not color[U"b"].isNumber())
+		{
+			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
+			return result;
+		}
+
+		if (not color.contains(U"a") || not color[U"a"].isNumber())
+		{
+			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
+			return result;
+		}
+
+		result.color = ColorF{ color[U"r"].get<double> (),color[U"g"].get<double>() ,color[U"b"].get<double>() ,color[U"a"].get<double>() };
 		Editor::ShowSuccess(U"SolidColorBackground のパースに成功しました。");
 		return result;
 	}
