@@ -1,6 +1,110 @@
 ﻿# include <Siv3D.hpp>
 # include "Editor/Editor.hpp"
 
+/// @brief jsonの体裁を型ごとにチェックします。
+namespace JsonTypeCheckers
+{
+	/// @brief doubleの体裁として記述されているか確認します。
+	/// @param json keyを持っている json ファイルを渡します。
+	/// @param key チェックする key を渡します。
+	/// @return 体裁に問題が無ければ true を返します。
+	static bool isValidDouble(const JSON& json, StringView key)
+	{
+		if (not json.contains(key) || not json[key].isObject())
+		{
+			return false;
+		}
+
+		const auto& vec2 = json[key];
+		if (not vec2.contains(U"type") || not vec2[U"type"].isString() || vec2[U"type"] != U"double" ||
+			not vec2.contains(U"value") || not vec2[U"value"].isNumber())
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	/// @brief Vec2の体裁として記述されているか確認します。
+	/// @param json keyを持っている json ファイルを渡します。
+	/// @param key チェックする key を渡します。
+	/// @return 体裁に問題が無ければ true を返します。
+	static bool isValidVec2(const JSON& json, StringView key)
+	{
+		if (not json.contains(key) || not json[key].isObject())
+		{
+			return false;
+		}
+
+		const auto& vec2 = json[key];
+		if (not vec2.contains(U"type") || not vec2[U"type"].isString() || vec2[U"type"] != U"Vec2" ||
+			not vec2.contains(U"x") || not vec2[U"x"].isNumber() ||
+			not vec2.contains(U"y") || not vec2[U"y"].isNumber())
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	/// @brief ColorFの体裁として記述されているか確認します。
+	/// @param json keyを持っている json ファイルを渡します。
+	/// @param key ColorF の key を渡します。
+	/// @return 体裁に問題が無ければ true を返します。
+	static bool isValidColorF(const JSON& json, StringView key)
+	{
+		if (not json.contains(key) || not json[key].isObject())
+		{
+			return false;
+		}
+
+		const auto& color = json[key];
+		if (not color.contains(U"type") || not color[U"type"].isString() || color[U"type"] != U"ColorF" ||
+			not color.contains(U"r") || not color[U"r"].isNumber() ||
+			not color.contains(U"g") || not color[U"g"].isNumber() ||
+			not color.contains(U"b") || not color[U"b"].isNumber() ||
+			not color.contains(U"a") || not color[U"a"].isNumber())
+		{
+			return false;
+		}
+
+		return true;
+	}
+
+	/// @brief Circleの体裁として記述されているか確認します。
+	/// @param json keyを持っている json ファイルを渡します。
+	/// @param key チェックする key を渡します。
+	/// @return 体裁に問題が無ければ true を返します。
+	static bool isValidCircle(const JSON& json, StringView key)
+	{
+		if (not json.contains(key) || not json[key].isObject())
+		{
+			return false;
+		}
+
+		const auto& circle = json[key];
+
+		if (not circle.contains(U"type") || not circle[U"type"].isString() || circle[U"type"] != U"Circle" ||
+			not circle.contains(U"center") || not circle[U"center"].isObject() ||
+			not circle.contains(U"radius") || not circle[U"radius"].isObject())
+		{
+			return false;
+		}
+
+		if (not isValidVec2(circle, U"center"))
+		{
+			return false;
+		}
+
+		if (not isValidDouble(circle, U"radius"))
+		{
+			return false;
+		}
+
+		return true;
+	}
+}
+
 struct IConfig
 {
 	virtual ~IConfig() = default;
@@ -25,49 +129,14 @@ struct SolidColorBackground : IConfig
 	static SolidColorBackground Parse(const JSON& json)
 	{
 		SolidColorBackground result;
-		if (not json.contains(U"color") || not json[U"color"].isObject())
+
+		if (not JsonTypeCheckers::isValidColorF(json, U"color"))
 		{
 			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
 			return result;
 		}
 
 		const auto& color = json[U"color"];
-
-		if (not color.contains(U"type") || not color[U"type"].isString())
-		{
-			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
-			return result;
-		}
-
-		if (color[U"type"] != U"ColorF")
-		{
-			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
-			return result;
-		}
-
-		if (not color.contains(U"r") || not color[U"r"].isNumber())
-		{
-			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
-			return result;
-		}
-
-		if (not color.contains(U"g") || not color[U"g"].isNumber())
-		{
-			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
-			return result;
-		}
-
-		if (not color.contains(U"b") || not color[U"b"].isNumber())
-		{
-			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
-			return result;
-		}
-
-		if (not color.contains(U"a") || not color[U"a"].isNumber())
-		{
-			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
-			return result;
-		}
 
 		result.color = ColorF{ color[U"r"].get<double> (),color[U"g"].get<double>() ,color[U"b"].get<double>() ,color[U"a"].get<double>() };
 		Editor::ShowSuccess(U"SolidColorBackground のパースに成功しました。");
@@ -80,7 +149,7 @@ struct CircleObject :IConfig
 	static constexpr StringView DataType = U"circleObject";
 
 	Vec2 center{ 0,0 };
-
+	
 	double radius = 0;
 
 	[[nodiscard]]
@@ -94,72 +163,18 @@ struct CircleObject :IConfig
 	{
 		CircleObject result;
 
+		if (not JsonTypeCheckers::isValidCircle(json, U"circle"))
 		{
-			if (not json.contains(U"center") || not json[U"center"].isObject())
-			{
-				Editor::ShowError(U"CircleObject のパースに失敗しました。");
-				return result;
-			}
-
-			const auto& center = json[U"center"];
-
-			if (not center.contains(U"type") || not center[U"type"].isString())
-			{
-				Editor::ShowError(U"CircleObject のパースに失敗しました。");
-				return result;
-			}
-
-			if (center[U"type"].getString() != U"Vec2")
-			{
-				Editor::ShowError(U"CircleObject のパースに失敗しました。");
-				return result;
-			}
-
-			if (not center.contains(U"x") || not center[U"x"].isNumber())
-			{
-				Editor::ShowError(U"CircleObject のパースに失敗しました。");
-				return result;
-			}
-
-			if (not center.contains(U"y") || not center[U"y"].isNumber())
-			{
-				Editor::ShowError(U"CircleObject のパースに失敗しました。");
-				return result;
-			}
-
-			result.center = Vec2{ center[U"x"].get<double>(),center[U"y"].get<double>() };
+			Editor::ShowError(U"CircleObject のパースに失敗しました。");
+			return result;
 		}
+		const auto& circle = json[U"circle"];
+		const auto& center = circle[U"center"];
+		result.center = Vec2{ center[U"x"].get<double>(),center[U"y"].get<double>() };
 
-		{
-			if (not json.contains(U"radius") || not json[U"radius"].isObject())
-			{
-				Editor::ShowError(U"CircleObject のパースに失敗しました。");
-				return result;
-			}
-
-			const auto& radius = json[U"radius"];
-
-			if (not radius.contains(U"type") || not radius[U"type"].isString())
-			{
-				Editor::ShowError(U"CircleObject のパースに失敗しました。");
-				return result;
-			}
-
-			if (radius[U"type"].getString() != U"double")
-			{
-				Editor::ShowError(U"CircleObject のパースに失敗しました。");
-				return result;
-			}
-
-			if (not radius.contains(U"value") || not radius[U"value"].isNumber())
-			{
-				Editor::ShowError(U"CircleObject のパースに失敗しました。");
-				return result;
-			}
-
-			result.radius = radius[U"value"].get<double>();
-		}
-
+		const auto& radius = circle[U"radius"];
+		result.radius = radius[U"value"].get<double>();
+		
 		Editor::ShowSuccess(U"CircleObject のパースに成功しました。");
 		return result;
 	}
