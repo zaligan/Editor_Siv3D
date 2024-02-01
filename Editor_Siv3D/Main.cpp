@@ -2,38 +2,47 @@
 # include "Editor/Editor.hpp"
 
 /// @brief jsonの体裁を型ごとにチェックします。
-namespace JsonTypeCheckers
+namespace JsonConvertTypes
 {
-	/// @brief doubleの体裁として記述されているか確認します。
+	/// @brief json から double に変換します。
 	/// @param json keyを持っている json ファイルを渡します。
-	/// @param key チェックする key を渡します。
-	/// @return 体裁に問題が無ければ true を返します。
-	static bool isValidDouble(const JSON& json, StringView key)
+	/// @param key 変換したい double の key を渡します。
+	/// @return 変換した double を返します。失敗した場合 0 を返します。
+	static double jsonToDouble(const JSON& json, StringView key)
 	{
+		double result = 0.0;
+
 		if (not json.contains(key) || not json[key].isObject())
 		{
-			return false;
+			Editor::ShowError(U"json を double に変換できませんでした。");
+			return result;
 		}
 
-		const auto& vec2 = json[key];
-		if (not vec2.contains(U"type") || not vec2[U"type"].isString() || vec2[U"type"] != U"double" ||
-			not vec2.contains(U"value") || not vec2[U"value"].isNumber())
+		const auto& d = json[key];
+		if (not d.contains(U"type") || not d[U"type"].isString() || d[U"type"] != U"double" ||
+			not d.contains(U"value") || not d[U"value"].isNumber())
 		{
-			return false;
+			Editor::ShowError(U"json を double に変換できませんでした。");
+			return result;
 		}
 
-		return true;
+		result = d[U"value"].get<double>();
+
+		return result;
 	}
 
-	/// @brief Vec2の体裁として記述されているか確認します。
+	/// @brief json から Vec2 に変換します。
 	/// @param json keyを持っている json ファイルを渡します。
-	/// @param key チェックする key を渡します。
-	/// @return 体裁に問題が無ければ true を返します。
-	static bool isValidVec2(const JSON& json, StringView key)
+	/// @param key 変換したい Vec2 の key を渡します。
+	/// @return 変換した Vec2 を返します。失敗した場合 {0,0} を返します。
+	static Vec2 jsonToVec2(const JSON& json, StringView key)
 	{
+		Vec2 result{ 0,0 };
+
 		if (not json.contains(key) || not json[key].isObject())
 		{
-			return false;
+			Editor::ShowError(U"json を Vec2 に変換できませんでした。");
+			return result;
 		}
 
 		const auto& vec2 = json[key];
@@ -41,23 +50,30 @@ namespace JsonTypeCheckers
 			not vec2.contains(U"x") || not vec2[U"x"].isNumber() ||
 			not vec2.contains(U"y") || not vec2[U"y"].isNumber())
 		{
-			return false;
+			Editor::ShowError(U"json を Vec2 に変換できませんでした。");
+			return result;
 		}
 
-		return true;
+		result = Vec2{ vec2[U"x"].get<double>(),vec2[U"y"].get<double>() };
+
+		return result;
 	}
 
-	/// @brief ColorFの体裁として記述されているか確認します。
+	/// @brief json から ColorF に変換します。
 	/// @param json keyを持っている json ファイルを渡します。
-	/// @param key ColorF の key を渡します。
-	/// @return 体裁に問題が無ければ true を返します。
-	static bool isValidColorF(const JSON& json, StringView key)
+	/// @param key 変換したい ColorF の key を渡します。
+	/// @return 変換した ColorF を返します。失敗した場合`白`を返します。
+	static ColorF jsonToColorF(const JSON& json, StringView key)
 	{
+		ColorF result{ 1.0,1.0, 1.0, 1.0 };
+
 		if (not json.contains(key) || not json[key].isObject())
 		{
-			return false;
+			Editor::ShowError(U"json を ColorF に変換できませんでした。");
+			return result;
 		}
 
+		//ColorF の体裁で json ファイルが記述されているか調べる。
 		const auto& color = json[key];
 		if (not color.contains(U"type") || not color[U"type"].isString() || color[U"type"] != U"ColorF" ||
 			not color.contains(U"r") || not color[U"r"].isNumber() ||
@@ -65,21 +81,27 @@ namespace JsonTypeCheckers
 			not color.contains(U"b") || not color[U"b"].isNumber() ||
 			not color.contains(U"a") || not color[U"a"].isNumber())
 		{
-			return false;
+			Editor::ShowError(U"json を ColorF に変換できませんでした。");
+			return result;
 		}
 
-		return true;
+		result = ColorF{ color[U"r"].get<double>(),color[U"g"].get<double>() ,color[U"b"].get<double>() ,color[U"a"].get<double>()};
+
+		return result;
 	}
 
-	/// @brief Circleの体裁として記述されているか確認します。
+	/// @brief json から Circle に変換します。
 	/// @param json keyを持っている json ファイルを渡します。
-	/// @param key チェックする key を渡します。
-	/// @return 体裁に問題が無ければ true を返します。
-	static bool isValidCircle(const JSON& json, StringView key)
+	/// @param key 変換したい Circle の key を渡します。
+	/// @return 変換した Circle を返します。失敗した場合 { 10,10,10 } を返します。
+	static Circle jsonToCircle(const JSON& json, StringView key)
 	{
+		Circle result{ 10,10,10 };
+
 		if (not json.contains(key) || not json[key].isObject())
 		{
-			return false;
+			Editor::ShowError(U"json を Circle に変換できませんでした。");
+			return result;
 		}
 
 		const auto& circle = json[key];
@@ -88,20 +110,13 @@ namespace JsonTypeCheckers
 			not circle.contains(U"center") || not circle[U"center"].isObject() ||
 			not circle.contains(U"radius") || not circle[U"radius"].isObject())
 		{
-			return false;
+			Editor::ShowError(U"json を Circle に変換できませんでした。");
+			return result;
 		}
+		
+		result = Circle{ jsonToVec2(circle, U"center") ,jsonToDouble(circle, U"radius") };
 
-		if (not isValidVec2(circle, U"center"))
-		{
-			return false;
-		}
-
-		if (not isValidDouble(circle, U"radius"))
-		{
-			return false;
-		}
-
-		return true;
+		return result;
 	}
 }
 
@@ -130,16 +145,8 @@ struct SolidColorBackground : IConfig
 	{
 		SolidColorBackground result;
 
-		if (not JsonTypeCheckers::isValidColorF(json, U"color"))
-		{
-			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
-			return result;
-		}
-
-		const auto& color = json[U"color"];
-
-		result.color = ColorF{ color[U"r"].get<double> (),color[U"g"].get<double>() ,color[U"b"].get<double>() ,color[U"a"].get<double>() };
-		Editor::ShowSuccess(U"SolidColorBackground のパースに成功しました。");
+		result.color = JsonConvertTypes::jsonToColorF(json, U"color");
+		
 		return result;
 	}
 };
@@ -161,19 +168,8 @@ struct CircleObject :IConfig
 	{
 		CircleObject result;
 
-		if (not JsonTypeCheckers::isValidCircle(json, U"circle"))
-		{
-			Editor::ShowError(U"CircleObject のパースに失敗しました。");
-			return result;
-		}
-		const auto& circle = json[U"circle"];
-		const auto& center = circle[U"center"];
-		result.circle.center = Vec2{ center[U"x"].get<double>(),center[U"y"].get<double>() };
+		result.circle = JsonConvertTypes::jsonToCircle(json, U"circle");
 
-		const auto& radius = circle[U"radius"];
-		result.circle.r = radius[U"value"].get<double>();
-		
-		Editor::ShowSuccess(U"CircleObject のパースに成功しました。");
 		return result;
 	}
 };
