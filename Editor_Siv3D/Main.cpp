@@ -78,14 +78,20 @@ namespace JsonConvertTypes
 		if (not color.contains(U"type") || not color[U"type"].isString() || color[U"type"] != U"ColorF" ||
 			not color.contains(U"r") || not color[U"r"].isNumber() ||
 			not color.contains(U"g") || not color[U"g"].isNumber() ||
-			not color.contains(U"b") || not color[U"b"].isNumber() ||
-			not color.contains(U"a") || not color[U"a"].isNumber())
+			not color.contains(U"b") || not color[U"b"].isNumber())
 		{
 			Editor::ShowError(U"json を ColorF に変換できませんでした。");
 			return result;
 		}
 
-		result = ColorF{ color[U"r"].get<double>(),color[U"g"].get<double>() ,color[U"b"].get<double>() ,color[U"a"].get<double>()};
+		//alpha 成分を記述していなかった場合 1.0 にする
+		double alpha = 1.0;
+		if (color.contains(U"a") && color[U"a"].isNumber())
+		{
+			alpha = color[U"a"].get<double>();
+		}
+
+		result = ColorF{ color[U"r"].get<double>(),color[U"g"].get<double>() ,color[U"b"].get<double>() ,alpha};
 
 		return result;
 	}
