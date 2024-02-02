@@ -95,35 +95,6 @@ namespace JsonConvertTypes
 
 		return result;
 	}
-
-	/// @brief json から Circle に変換します。
-	/// @param json keyを持っている json ファイルを渡します。
-	/// @param key 変換したい Circle の key を渡します。
-	/// @return 変換した Circle を返します。失敗した場合 { 10,10,10 } を返します。
-	static Circle jsonToCircle(const JSON& json, StringView key)
-	{
-		Circle result{ 10,10,10 };
-
-		if (not json.contains(key) || not json[key].isObject())
-		{
-			Editor::ShowError(U"json を Circle に変換できませんでした。");
-			return result;
-		}
-
-		const auto& circle = json[key];
-
-		if (not circle.contains(U"type") || not circle[U"type"].isString() || circle[U"type"] != U"Circle" ||
-			not circle.contains(U"center") || not circle[U"center"].isObject() ||
-			not circle.contains(U"radius") || not circle[U"radius"].isObject())
-		{
-			Editor::ShowError(U"json を Circle に変換できませんでした。");
-			return result;
-		}
-		
-		result = Circle{ jsonToVec2(circle, U"center") ,jsonToDouble(circle, U"radius") };
-
-		return result;
-	}
 }
 
 struct IConfig
@@ -161,7 +132,9 @@ struct CircleObject :IConfig
 {
 	static constexpr StringView DataType = U"circleObject";
 
-	Circle circle{0,0,0};
+	Vec2 center{ 0,0 };
+
+	double radius = 0;
 
 	[[nodiscard]]
 	StringView dataType() const override
@@ -174,7 +147,9 @@ struct CircleObject :IConfig
 	{
 		CircleObject result;
 
-		result.circle = JsonConvertTypes::jsonToCircle(json, U"circle");
+		result.center = JsonConvertTypes::jsonToVec2(json, U"center");
+
+		result.radius = JsonConvertTypes::jsonToDouble(json, U"radius");
 
 		return result;
 	}
@@ -257,7 +232,7 @@ void Main()
 			}
 		}
 
-		circleObject.circle.draw();
+		Circle {circleObject.center,circleObject.radius}.draw();
 
 		//通知用ボタンを作成します
 		if (SimpleGUI::Button(U"verbose", Vec2{ 1100, 40 }, 160))
