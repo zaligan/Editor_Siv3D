@@ -2,11 +2,11 @@
   "dataType": "circleObject",
   "center": {
     "type": "Vec2",
-    "x": 440,
+    "x": 240,
     "y": 360
   },
   "radius": {
     "type": "double",
-    "value": 20
+    "value": 120
   }
 }

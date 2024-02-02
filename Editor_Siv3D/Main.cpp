@@ -1,20 +1,20 @@
 ﻿# include <Siv3D.hpp>
 # include "Editor/Editor.hpp"
 
-/// @brief jsonの体裁を型ごとにチェックします。
-namespace JsonConvertTypes
+/// @brief JSONを型ごとにパースします。
+namespace JSONParser
 {
-	/// @brief json から double に変換します。
-	/// @param json keyを持っている json ファイルを渡します。
-	/// @param key 変換したい double の key を渡します。
-	/// @return 変換した double を返します。失敗した場合 0 を返します。
-	static double jsonToDouble(const JSON& json, StringView key)
+	/// @brief `json`からdoubleに変換します。
+	/// @param json `key`を持っている`json`ファイルを渡します。
+	/// @param key 変換したい`key`を渡します。
+	/// @return 変換したdoubleを返します。失敗した場合、無効値を返します。
+	[[nodiscard]]
+	static Optional<double> JSONParseDouble(const JSON& json, StringView key)
 	{
-		double result = 0.0;
+		Optional<double> result;
 
 		if (not json.contains(key) || not json[key].isObject())
 		{
-			Editor::ShowError(U"json を double に変換できませんでした。");
 			return result;
 		}
 
@@ -22,7 +22,6 @@ namespace JsonConvertTypes
 		if (not d.contains(U"type") || not d[U"type"].isString() || d[U"type"] != U"double" ||
 			not d.contains(U"value") || not d[U"value"].isNumber())
 		{
-			Editor::ShowError(U"json を double に変換できませんでした。");
 			return result;
 		}
 
@@ -31,17 +30,17 @@ namespace JsonConvertTypes
 		return result;
 	}
 
-	/// @brief json から Vec2 に変換します。
-	/// @param json keyを持っている json ファイルを渡します。
-	/// @param key 変換したい Vec2 の key を渡します。
-	/// @return 変換した Vec2 を返します。失敗した場合 {0,0} を返します。
-	static Vec2 jsonToVec2(const JSON& json, StringView key)
+	/// @brief `json`からVec2に変換します。
+	/// @param json `key`を持っている`json`ファイルを渡します。
+	/// @param key 変換したい`key`を渡します。
+	/// @return 変換したVec2を返します。失敗した場合、無効値を返します。
+	[[nodiscard]]
+	static Optional<Vec2> JSONParseVec2(const JSON& json, StringView key)
 	{
-		Vec2 result{ 0,0 };
+		Optional<Vec2> result;
 
 		if (not json.contains(key) || not json[key].isObject())
 		{
-			Editor::ShowError(U"json を Vec2 に変換できませんでした。");
 			return result;
 		}
 
@@ -50,7 +49,6 @@ namespace JsonConvertTypes
 			not vec2.contains(U"x") || not vec2[U"x"].isNumber() ||
 			not vec2.contains(U"y") || not vec2[U"y"].isNumber())
 		{
-			Editor::ShowError(U"json を Vec2 に変換できませんでした。");
 			return result;
 		}
 
@@ -58,18 +56,18 @@ namespace JsonConvertTypes
 
 		return result;
 	}
-
-	/// @brief json から ColorF に変換します。
-	/// @param json keyを持っている json ファイルを渡します。
-	/// @param key 変換したい ColorF の key を渡します。
-	/// @return 変換した ColorF を返します。失敗した場合`白`を返します。
-	static ColorF jsonToColorF(const JSON& json, StringView key)
+	
+	/// @brief `json`からColorFに変換します。
+	/// @param json `key`を持っている`json`ファイルを渡します。
+	/// @param key 変換したい`key`を渡します。
+	/// @return 変換したColorFを返します。失敗した場合、無効値を返します。
+	[[nodiscard]]
+	static Optional<ColorF> JSONParseColorF(const JSON& json, StringView key)
 	{
-		ColorF result{ 1.0,1.0, 1.0, 1.0 };
+		Optional<ColorF> result;
 
 		if (not json.contains(key) || not json[key].isObject())
 		{
-			Editor::ShowError(U"json を ColorF に変換できませんでした。");
 			return result;
 		}
 
@@ -80,7 +78,6 @@ namespace JsonConvertTypes
 			not color.contains(U"g") || not color[U"g"].isNumber() ||
 			not color.contains(U"b") || not color[U"b"].isNumber())
 		{
-			Editor::ShowError(U"json を ColorF に変換できませんでした。");
 			return result;
 		}
 
@@ -122,8 +119,16 @@ struct SolidColorBackground : IConfig
 	{
 		SolidColorBackground result;
 
-		result.color = JsonConvertTypes::jsonToColorF(json, U"color");
-		
+		if (const auto color = JSONParser::JSONParseColorF(json, U"color"))
+		{
+			Editor::ShowSuccess(U"SolidColorBackground のパースに成功しました。");
+			result.color = *color;
+		}
+		else
+		{
+			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
+		}
+
 		return result;
 	}
 };
@@ -147,9 +152,25 @@ struct CircleObject :IConfig
 	{
 		CircleObject result;
 
-		result.center = JsonConvertTypes::jsonToVec2(json, U"center");
+		if (const auto center = JSONParser::JSONParseVec2(json, U"center"))
+		{
+			result.center = *center;
+		}
+		else
+		{
+			Editor::ShowError(U"CircleObject のパースに失敗しました。");
+			return result;
+		}
 
-		result.radius = JsonConvertTypes::jsonToDouble(json, U"radius");
+		if (const auto radius = JSONParser::JSONParseDouble(json, U"radius"))
+		{
+			Editor::ShowSuccess(U"CircleObject のパースに成功しました。");
+			result.radius = *radius;
+		}
+		else
+		{
+			Editor::ShowError(U"CircleObject のパースに失敗しました。");
+		}
 
 		return result;
 	}
