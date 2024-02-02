@@ -4,6 +4,32 @@
 /// @brief JSONを型ごとにパースします。
 namespace JSONParser
 {
+	/// @brief `json`からint32に変換します。
+	/// @param json `key`を持っている`json`ファイルを渡します。
+	/// @param key 変換したい`key`を渡します。
+	/// @return 変換したint32を返します。失敗した場合、無効値を返します。
+	[[nodiscard]]
+	static Optional<int32> JSONParseInt32(const JSON& json, StringView key)
+	{
+		Optional<int32> result;
+
+		if (not json.contains(key) || not json[key].isObject())
+		{
+			return result;
+		}
+
+		const auto& i = json[key];
+		if (not i.contains(U"type") || not i[U"type"].isString() || i[U"type"] != U"int" ||
+						not i.contains(U"value") || not i[U"value"].isNumber())
+		{
+			return result;
+		}
+
+		result = i[U"value"].get<int32>();
+
+		return result;
+	}
+
 	/// @brief `json`からdoubleに変換します。
 	/// @param json `key`を持っている`json`ファイルを渡します。
 	/// @param key 変換したい`key`を渡します。
@@ -92,6 +118,32 @@ namespace JSONParser
 
 		return result;
 	}
+
+	/// @brief `json`からStringに変換します。
+	/// @param json `key`を持っている`json`ファイルを渡します。
+	/// @param key 変換したい`key`を渡します。
+	/// @return 変換したStringを返します。失敗した場合、無効値を返します。
+	[[nodiscard]]
+	static Optional<String> JSONParseString(const JSON& json, StringView key)
+	{
+		Optional<String> result;
+
+		if (not json.contains(key) || not json[key].isObject())
+		{
+			return result;
+		}
+
+		const auto& s = json[key];
+		if (not s.contains(U"type") || not s[U"type"].isString() || s[U"type"] != U"String" ||
+						not s.contains(U"value") || not s[U"value"].isString())
+		{
+			return result;
+		}
+
+		result = s[U"value"].getString();
+
+		return result;
+	}
 }
 
 struct IConfig
@@ -176,6 +228,49 @@ struct CircleObject :IConfig
 	}
 };
 
+struct TestParsePrint :IConfig
+{
+	static constexpr StringView DataType = U"parseTest";
+
+	int32 loopCnt = 0;
+
+	String text = U"fail";
+
+	[[nodiscard]]
+	StringView dataType() const override
+	{
+		return DataType;
+	}
+
+	[[nodiscard]]
+	static TestParsePrint Parse(const JSON& json)
+	{
+		TestParsePrint result;
+
+		if (const auto loopCnt = JSONParser::JSONParseInt32(json, U"count"))
+		{
+			result.loopCnt = *loopCnt;
+		}
+		else
+		{
+			Editor::ShowError(U"TestParsePrint のパースに失敗しました。");
+			return result;
+		}
+
+		if (const auto text = JSONParser::JSONParseString(json, U"print"))
+		{
+			Editor::ShowSuccess(U"TestParsePrint のパースに成功しました。");
+			result.text = *text;
+		}
+		else
+		{
+			Editor::ShowError(U"TestParsePrint のパースに失敗しました。");
+		}
+
+		return result;
+	}
+};
+
 [[nodiscard]]
 std::pair<JSON, String> LoadConfigJSON(const FilePathView path, const FilePathView friendlyPath)
 {
@@ -223,6 +318,8 @@ void Main()
 
 	CircleObject circleObject;
 
+	TestParsePrint testParsePrint;
+
 	while (System::Update())
 	{
 		editor.update();
@@ -251,9 +348,21 @@ void Main()
 			{
 				circleObject = CircleObject::Parse(json);
 			}
+			else if (dataType == TestParsePrint::DataType)
+			{
+				testParsePrint = TestParsePrint::Parse(json);
+			}
 		}
 
 		Circle {circleObject.center,circleObject.radius}.draw();
+
+		if (MouseL.down())
+		{
+			for (int32 i = 0; i < testParsePrint.loopCnt; ++i)
+			{
+				Print << testParsePrint.text;
+			}
+		}
 
 		//通知用ボタンを作成します
 		if (SimpleGUI::Button(U"verbose", Vec2{ 1100, 40 }, 160))
