@@ -10,6 +10,19 @@ struct IConfig
 	virtual StringView dataType() const = 0;
 };
 
+template <class ConfigType>
+[[nodiscard]]
+ConfigType* GetConfig(const HashTable<String, std::unique_ptr<IConfig>>& configs)
+{
+	if (auto it = configs.find(ConfigType::DataType); (it != configs.end()))
+	{
+		//ConfigTypeから作られたポインタでない場合nullptrになる
+		return dynamic_cast<ConfigType*>(it->second.get());
+	}
+
+	return nullptr;
+}
+
 struct SolidColorBackground : IConfig
 {
 	static constexpr StringView DataType = U"solidColorBackgrond";
@@ -164,9 +177,11 @@ void Main()
 
 	Scene::SetBackground(ColorF{ 0.6, 0.8, 0.7 });
 
-	CircleObject circleObject;
+	HashTable<String, std::unique_ptr<IConfig>> configs;
 
-	TestParsePrint testParsePrint;
+	
+
+
 
 	while (System::Update())
 	{
@@ -188,34 +203,36 @@ void Main()
 
 			if (dataType == SolidColorBackground::DataType)
 			{
-				if (auto p = SolidColorBackground::Parse(json))
-				{
-					Scene::SetBackground(p->color);
-				}
+				configs[SolidColorBackground::DataType] = SolidColorBackground::Parse(json);				
 			}
 			else if (dataType == CircleObject::DataType)
 			{
-				if (auto p = CircleObject::Parse(json))
-				{
-					circleObject = *p;
-				}
+				configs[CircleObject::DataType] = CircleObject::Parse(json);
 			}
 			else if (dataType == TestParsePrint::DataType)
 			{
-				if (auto p = TestParsePrint::Parse(json))
-				{
-					testParsePrint = *p;
-				}
+				configs[TestParsePrint::DataType] = TestParsePrint::Parse(json);
 			}
 		}
 
-		Circle {circleObject.center,circleObject.radius}.draw();
-
-		if (MouseL.down())
+		if (auto p = GetConfig<SolidColorBackground>(configs))
 		{
-			for (int32 i = 0; i < testParsePrint.loopCount; ++i)
+			Scene::SetBackground(p->color);
+		}
+
+		if (auto p = GetConfig<CircleObject>(configs))
+		{
+			Circle{ p->center,p->radius }.draw();
+		}
+
+		if (auto p = GetConfig<TestParsePrint>(configs))
+		{
+			if (MouseR.down())
 			{
-				Print << testParsePrint.text;
+				for (int32 i = 0; i < p->loopCount; ++i)
+				{
+					Print << p->text;
+				}
 			}
 		}
 
