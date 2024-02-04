@@ -153,6 +153,9 @@
     <ClCompile Include="Editor\DirectoryMonitor.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\JSONParser.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="App\icon.ico">
@@ -792,6 +795,9 @@
       <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="Editor\DirectoryMonitor.hpp">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\JSONParser.hpp">
       <Filter>Editor</Filter>
     </ClInclude>
   </ItemGroup>
