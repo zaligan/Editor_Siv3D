@@ -9,33 +9,33 @@ namespace JSONParser
 	/// @param key 変換したい`key`を渡します。
 	/// @return 変換したint32を返します。失敗した場合、無効値を返します。
 	[[nodiscard]]
-	Optional<int32> JSONParseInt32(const JSON& json, StringView key);
+	Optional<int32> ReadInt32(const JSON& json, StringView key);
 
 	/// @brief `json`からdoubleに変換します。
 	/// @param json `key`を持っている`json`ファイルを渡します。
 	/// @param key 変換したい`key`を渡します。
 	/// @return 変換したdoubleを返します。失敗した場合、無効値を返します。
 	[[nodiscard]]
-	Optional<double> JSONParseDouble(const JSON& json, StringView key);
+	Optional<double> ReadDouble(const JSON& json, StringView key);
 
 	/// @brief `json`からVec2に変換します。
 	/// @param json `key`を持っている`json`ファイルを渡します。
 	/// @param key 変換したい`key`を渡します。
 	/// @return 変換したVec2を返します。失敗した場合、無効値を返します。
 	[[nodiscard]]
-	Optional<Vec2> JSONParseVec2(const JSON& json, StringView key);
+	Optional<Vec2> ReadVec2(const JSON& json, StringView key);
 
 	/// @brief `json`からColorFに変換します。
 	/// @param json `key`を持っている`json`ファイルを渡します。
 	/// @param key 変換したい`key`を渡します。
 	/// @return 変換したColorFを返します。失敗した場合、無効値を返します。
 	[[nodiscard]]
-	Optional<ColorF> JSONParseColorF(const JSON& json, StringView key);
+	Optional<ColorF> ReadColorF(const JSON& json, StringView key);
 
 	/// @brief `json`からStringに変換します。
 	/// @param json `key`を持っている`json`ファイルを渡します。
 	/// @param key 変換したい`key`を渡します。
 	/// @return 変換したStringを返します。失敗した場合、無効値を返します。
 	[[nodiscard]]
-	Optional<String> JSONParseString(const JSON& json, StringView key);
+	Optional<String> ReadString(const JSON& json, StringView key);
 }

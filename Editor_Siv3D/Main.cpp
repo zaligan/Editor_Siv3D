@@ -16,6 +16,11 @@ struct SolidColorBackground : IConfig
 
 	ColorF color{ 1.0,1.0,1.0,1.0 };
 
+	SolidColorBackground() = default;
+
+	explicit SolidColorBackground(const ColorF& color)
+		:color(color) {}
+
 	[[nodiscard]]
 	StringView dataType() const override
 	{
@@ -23,21 +28,18 @@ struct SolidColorBackground : IConfig
 	}
 
 	[[nodiscard]]
-	static SolidColorBackground Parse(const JSON& json)
+	static std::unique_ptr<SolidColorBackground> Parse(const JSON& json)
 	{
-		SolidColorBackground result;
-
-		if (const auto color = JSONParser::JSONParseColorF(json, U"color"))
+		if (const auto color = JSONParser::ReadColorF(json, U"color"))
 		{
 			Editor::ShowSuccess(U"SolidColorBackground のパースに成功しました。");
-			result.color = *color;
+			return std::make_unique<SolidColorBackground>(*color);
 		}
 		else
 		{
 			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
+			return nullptr;
 		}
-
-		return result;
 	}
 };
 
@@ -49,6 +51,11 @@ struct CircleObject :IConfig
 
 	double radius = 0;
 
+	CircleObject() = default;
+
+	CircleObject(const Vec2& center, double radius)
+		:center(center), radius(radius) {}
+
 	[[nodiscard]]
 	StringView dataType() const override
 	{
@@ -56,31 +63,21 @@ struct CircleObject :IConfig
 	}
 
 	[[nodiscard]]
-	static CircleObject Parse(const JSON& json)
+	static std::unique_ptr<CircleObject> Parse(const JSON& json)
 	{
-		CircleObject result;
+		const auto center = JSONParser::ReadVec2(json, U"center");
+		const auto radius = JSONParser::ReadDouble(json, U"radius");
 
-		if (const auto center = JSONParser::JSONParseVec2(json, U"center"))
-		{
-			result.center = *center;
-		}
-		else
-		{
-			Editor::ShowError(U"CircleObject のパースに失敗しました。");
-			return result;
-		}
-
-		if (const auto radius = JSONParser::JSONParseDouble(json, U"radius"))
+		if (center && radius)
 		{
 			Editor::ShowSuccess(U"CircleObject のパースに成功しました。");
-			result.radius = *radius;
+			return std::make_unique<CircleObject>(*center, *radius);
 		}
 		else
 		{
 			Editor::ShowError(U"CircleObject のパースに失敗しました。");
+			return nullptr;
 		}
-
-		return result;
 	}
 };
 
@@ -88,9 +85,14 @@ struct TestParsePrint :IConfig
 {
 	static constexpr StringView DataType = U"parseTest";
 
-	int32 loopCnt = 0;
+	int32 loopCount = 0;
 
 	String text = U"fail";
+
+	TestParsePrint() = default;
+
+	TestParsePrint(int32 loopCount, const String& text)
+		:loopCount(loopCount), text(text) {}
 
 	[[nodiscard]]
 	StringView dataType() const override
@@ -99,31 +101,21 @@ struct TestParsePrint :IConfig
 	}
 
 	[[nodiscard]]
-	static TestParsePrint Parse(const JSON& json)
+	static std::unique_ptr<TestParsePrint> Parse(const JSON& json)
 	{
-		TestParsePrint result;
+		const auto loopCount = JSONParser::ReadInt32(json, U"count");
+		const auto text = JSONParser::ReadString(json, U"print");
 
-		if (const auto loopCnt = JSONParser::JSONParseInt32(json, U"count"))
-		{
-			result.loopCnt = *loopCnt;
-		}
-		else
-		{
-			Editor::ShowError(U"TestParsePrint のパースに失敗しました。");
-			return result;
-		}
-
-		if (const auto text = JSONParser::JSONParseString(json, U"print"))
+		if (loopCount && text)
 		{
 			Editor::ShowSuccess(U"TestParsePrint のパースに成功しました。");
-			result.text = *text;
+			return std::make_unique<TestParsePrint>(*loopCount, *text);
 		}
 		else
 		{
 			Editor::ShowError(U"TestParsePrint のパースに失敗しました。");
+			return nullptr;
 		}
-
-		return result;
 	}
 };
 
@@ -196,16 +188,24 @@ void Main()
 
 			if (dataType == SolidColorBackground::DataType)
 			{
-				const SolidColorBackground solidColorBackground =SolidColorBackground::Parse(json);
-				Scene::SetBackground(solidColorBackground.color);
+				if (auto p = SolidColorBackground::Parse(json))
+				{
+					Scene::SetBackground(p->color);
+				}
 			}
 			else if (dataType == CircleObject::DataType)
 			{
-				circleObject = CircleObject::Parse(json);
+				if (auto p = CircleObject::Parse(json))
+				{
+					circleObject = *p;
+				}
 			}
 			else if (dataType == TestParsePrint::DataType)
 			{
-				testParsePrint = TestParsePrint::Parse(json);
+				if (auto p = TestParsePrint::Parse(json))
+				{
+					testParsePrint = *p;
+				}
 			}
 		}
 
@@ -213,7 +213,7 @@ void Main()
 
 		if (MouseL.down())
 		{
-			for (int32 i = 0; i < testParsePrint.loopCnt; ++i)
+			for (int32 i = 0; i < testParsePrint.loopCount; ++i)
 			{
 				Print << testParsePrint.text;
 			}
