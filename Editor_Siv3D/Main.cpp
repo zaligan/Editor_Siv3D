@@ -180,7 +180,10 @@ void Main()
 	HashTable<String, std::unique_ptr<IConfig>> configs;
 
 	
-
+	HashTable<String, std::function<std::unique_ptr<IConfig>(const JSON&)>> jsonParsers;
+	jsonParsers.emplace(SolidColorBackground::DataType, &SolidColorBackground::Parse);
+	jsonParsers.emplace(CircleObject::DataType, &CircleObject::Parse);
+	jsonParsers.emplace(TestParsePrint::DataType, &TestParsePrint::Parse);
 
 
 	while (System::Update())
@@ -203,15 +206,15 @@ void Main()
 
 			if (dataType == SolidColorBackground::DataType)
 			{
-				configs[SolidColorBackground::DataType] = SolidColorBackground::Parse(json);				
+				configs[dataType] = SolidColorBackground::Parse(json);				
 			}
 			else if (dataType == CircleObject::DataType)
 			{
-				configs[CircleObject::DataType] = CircleObject::Parse(json);
+				configs[dataType] = CircleObject::Parse(json);
 			}
 			else if (dataType == TestParsePrint::DataType)
 			{
-				configs[TestParsePrint::DataType] = TestParsePrint::Parse(json);
+				configs[dataType] = TestParsePrint::Parse(json);
 			}
 		}
 
