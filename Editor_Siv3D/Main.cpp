@@ -2,6 +2,7 @@
 # include "Editor/Editor.hpp"
 # include "Editor/JSONParser.hpp"
 # include "Editor/IConfig.hpp"
+# include "Editor/ConfigParser.hpp"
 
 struct SolidColorBackground : IConfig
 {
@@ -25,12 +26,10 @@ struct SolidColorBackground : IConfig
 	{
 		if (const auto color = JSONParser::ReadColorF(json, U"color"))
 		{
-			Editor::ShowSuccess(U"SolidColorBackground のパースに成功しました。");
 			return std::make_unique<SolidColorBackground>(*color);
 		}
 		else
 		{
-			Editor::ShowError(U"SolidColorBackground のパースに失敗しました。");
 			return nullptr;
 		}
 	}
@@ -63,12 +62,10 @@ struct CircleObject :IConfig
 
 		if (center && radius)
 		{
-			Editor::ShowSuccess(U"CircleObject のパースに成功しました。");
 			return std::make_unique<CircleObject>(*center, *radius);
 		}
 		else
 		{
-			Editor::ShowError(U"CircleObject のパースに失敗しました。");
 			return nullptr;
 		}
 	}
@@ -101,42 +98,16 @@ struct TestParsePrint :IConfig
 
 		if (loopCount && text)
 		{
-			Editor::ShowSuccess(U"TestParsePrint のパースに成功しました。");
 			return std::make_unique<TestParsePrint>(*loopCount, *text);
 		}
 		else
 		{
-			Editor::ShowError(U"TestParsePrint のパースに失敗しました。");
 			return nullptr;
 		}
 	}
 };
 
-[[nodiscard]]
-std::pair<JSON, String> LoadConfigJSON(const FilePathView path, const FilePathView friendlyPath)
-{
-	Editor::ShowInfo(U"config ファイル`{}`を JSON としてロードします"_fmt(friendlyPath));
 
-	const JSON json = JSON::Load(path);
-
-	if (not json)
-	{
-		Editor::ShowError(U"config　ファイル`{}`のロードに失敗しました（不正なJSON）。"_fmt(friendlyPath));
-		return{};
-	}
-
-	if (not json.contains(U"dataType") || not json[U"dataType"].isString())
-	{
-		Editor::ShowError(U"config ファイル`{}`: dataTypeがないか不正です。"_fmt(friendlyPath));
-		return{};
-	}
-
-	const String dataType = json[U"dataType"].getString();
-
-	Editor::ShowSuccess(U"データタイプは`{}`です。"_fmt(dataType));
-
-	return { json,dataType };
-}
 
 
 void Main()
@@ -160,10 +131,10 @@ void Main()
 	HashTable<String, std::unique_ptr<IConfig>> configs;
 
 	
-	HashTable<String, std::function<std::unique_ptr<IConfig>(const JSON&)>> jsonParsers;
-	jsonParsers.emplace(SolidColorBackground::DataType, &SolidColorBackground::Parse);
-	jsonParsers.emplace(CircleObject::DataType, &CircleObject::Parse);
-	jsonParsers.emplace(TestParsePrint::DataType, &TestParsePrint::Parse);
+	ConfigParser configParser;
+	configParser.addJSONParser(SolidColorBackground::DataType, &SolidColorBackground::Parse);
+	configParser.addJSONParser(CircleObject::DataType, &CircleObject::Parse);
+	configParser.addJSONParser(TestParsePrint::DataType, &TestParsePrint::Parse);
 
 
 	while (System::Update())
@@ -176,16 +147,13 @@ void Main()
 			const FilePath friendlyPath = FileSystem::RelativePath(changedConfigFile);
 			Editor::ShowInfo(U"configファイル`{}`が更新されました。"_fmt(friendlyPath));
 
-			const String extension = FileSystem::Extension(changedConfigFile);
-			if (extension != U"json")
+			if (const String extension = FileSystem::Extension(changedConfigFile); (extension == U"json"))
 			{
-				continue;
+				if (auto pConfig = configParser.parseJSON(changedConfigFile, friendlyPath))
+				{
+					configs[pConfig->dataType()] = std::move(pConfig);
+				}
 			}
-
-			const auto [json, dataType] = LoadConfigJSON(changedConfigFile, friendlyPath);
-
-			configs[dataType] = jsonParsers[dataType](json);
-
 		}
 
 		if (auto p = GetConfig<SolidColorBackground>(configs))

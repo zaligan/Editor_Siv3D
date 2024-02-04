@@ -115,6 +115,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Editor\ConfigParser.cpp" />
     <ClCompile Include="Editor\DirectoryMonitor.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
     <ClCompile Include="Editor\JSONParser.cpp" />
@@ -318,8 +319,10 @@
     <Xml Include="App\example\xml\test.xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Editor\ConfigParser.hpp" />
     <ClInclude Include="Editor\DirectoryMonitor.hpp" />
     <ClInclude Include="Editor\Editor.hpp" />
+    <ClInclude Include="Editor\IConfig.hpp" />
     <ClInclude Include="Editor\JSONParser.hpp" />
     <ClInclude Include="Editor\NotificationAddon.hpp" />
     <ClInclude Include="stdafx.h" />
