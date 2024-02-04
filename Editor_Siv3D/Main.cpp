@@ -1,27 +1,7 @@
 ﻿# include <Siv3D.hpp>
 # include "Editor/Editor.hpp"
 # include "Editor/JSONParser.hpp"
-
-struct IConfig
-{
-	virtual ~IConfig() = default;
-
-	[[nodiscard]]
-	virtual StringView dataType() const = 0;
-};
-
-template <class ConfigType>
-[[nodiscard]]
-ConfigType* GetConfig(const HashTable<String, std::unique_ptr<IConfig>>& configs)
-{
-	if (auto it = configs.find(ConfigType::DataType); (it != configs.end()))
-	{
-		//ConfigTypeから作られたポインタでない場合nullptrになる
-		return dynamic_cast<ConfigType*>(it->second.get());
-	}
-
-	return nullptr;
-}
+# include "Editor/IConfig.hpp"
 
 struct SolidColorBackground : IConfig
 {
@@ -204,18 +184,8 @@ void Main()
 
 			const auto [json, dataType] = LoadConfigJSON(changedConfigFile, friendlyPath);
 
-			if (dataType == SolidColorBackground::DataType)
-			{
-				configs[dataType] = SolidColorBackground::Parse(json);				
-			}
-			else if (dataType == CircleObject::DataType)
-			{
-				configs[dataType] = CircleObject::Parse(json);
-			}
-			else if (dataType == TestParsePrint::DataType)
-			{
-				configs[dataType] = TestParsePrint::Parse(json);
-			}
+			configs[dataType] = jsonParsers[dataType](json);
+
 		}
 
 		if (auto p = GetConfig<SolidColorBackground>(configs))
