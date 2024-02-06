@@ -100,4 +100,21 @@ namespace JSONParser
 
 		return s[U"value"].getString();
 	}
+
+	Optional<bool> ReadBool(const JSON& json, StringView key)
+	{
+		if (not json.contains(key) || not json[key].isObject())
+		{
+			return none;
+		}
+
+		const auto& b = json[key];
+		if (not b.contains(U"type") || not b[U"type"].isString() || b[U"type"] != U"bool" ||
+									not b.contains(U"value") || not b[U"value"].isBool())
+		{
+			return none;
+		}
+
+		return b[U"value"].get<bool>();
+	}
 }

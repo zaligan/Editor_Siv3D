@@ -38,4 +38,12 @@ namespace JSONParser
 	/// @return 変換したStringを返します。失敗した場合、無効値を返します。
 	[[nodiscard]]
 	Optional<String> ReadString(const JSON& json, StringView key);
+
+	/// @brief `json`からboolに変換します。
+	/// @param json `key`を持っている`json`ファイルを渡します。
+	/// @param key 変換したい`key`を渡します。
+	/// @return 変換したboolを返します。失敗した場合、無効値を返します。
+	[[nodiscard]]
+	Optional<bool> ReadBool(const JSON& json, StringView key);
+	 
 }
