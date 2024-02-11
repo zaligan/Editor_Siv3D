@@ -79,10 +79,12 @@ struct TestParsePrint :IConfig
 
 	String text = U"fail";
 
+	bool isPrinted = false;
+
 	TestParsePrint() = default;
 
-	TestParsePrint(int32 loopCount, const String& text)
-		:loopCount(loopCount), text(text) {}
+	TestParsePrint(int32 loopCount, const String& text, bool isPrinted)
+		:loopCount(loopCount), text(text), isPrinted(isPrinted) {}
 
 	[[nodiscard]]
 	StringView dataType() const override
@@ -95,10 +97,12 @@ struct TestParsePrint :IConfig
 	{
 		const auto loopCount = JSONParser::ReadInt32(json, U"count");
 		const auto text = JSONParser::ReadString(json, U"print");
+		const auto isPrinted = JSONParser::ReadBool(json, U"displayable");
 
-		if (loopCount && text)
+		// 全ての値が取得できた場合を書きたいが、boolの場合はfalseの場合もあるので、isPrintedがfalseの場合は無視する
+		if (loopCount && text && isPrinted)
 		{
-			return std::make_unique<TestParsePrint>(*loopCount, *text);
+			return std::make_unique<TestParsePrint>(*loopCount, *text, *isPrinted);
 		}
 		else
 		{
@@ -174,7 +178,7 @@ void Main()
 
 		if (auto p = GetConfig<TestParsePrint>(configs))
 		{
-			if (MouseR.down())
+			if (MouseR.down() && p->isPrinted)
 			{
 				for (int32 i = 0; i < p->loopCount; ++i)
 				{
