@@ -128,15 +128,16 @@ void Main()
 
 	Scene::SetBackground(ColorF{ 0.6, 0.8, 0.7 });
 
+	// 読み込んだ config ファイルを格納するための HashTable を用意します。[データタイプ, データのポインタ]
 	HashTable<String, std::unique_ptr<IConfig>> configs;
 
-	
+	// ConfigParser に JSONParser を登録します。
 	ConfigParser configParser;
 	configParser.addJSONParser(SolidColorBackground::DataType, &SolidColorBackground::Parse);
 	configParser.addJSONParser(CircleObject::DataType, &CircleObject::Parse);
 	configParser.addJSONParser(TestParsePrint::DataType, &TestParsePrint::Parse);
 
-
+	
 	while (System::Update())
 	{
 		editor.update();
@@ -144,18 +145,23 @@ void Main()
 		//変更のあった config ディレクトリを全て調べます。
 		for (const auto& changedConfigFile : editor.retrieveChangedConfigFiles())
 		{
+			// ファイルパスを相対パスに変換します。
 			const FilePath friendlyPath = FileSystem::RelativePath(changedConfigFile);
 			Editor::ShowInfo(U"configファイル`{}`が更新されました。"_fmt(friendlyPath));
 
+			// 拡張子が .json の場合、JSON ファイルとして読み込みます。
 			if (const String extension = FileSystem::Extension(changedConfigFile); (extension == U"json"))
 			{
+				// パースが失敗（nullptr）なら何もしません。
 				if (auto pConfig = configParser.parseJSON(changedConfigFile, friendlyPath))
 				{
+					// パースに成功した場合、configs に追加します。
 					configs[pConfig->dataType()] = std::move(pConfig);
 				}
 			}
 		}
 
+		// configs に格納されたデータを使った処理を行います。
 		if (auto p = GetConfig<SolidColorBackground>(configs))
 		{
 			Scene::SetBackground(p->color);

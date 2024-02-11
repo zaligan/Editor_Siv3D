@@ -3,6 +3,10 @@
 
 namespace
 {
+	/// @brief path から JSON をロードします。
+	/// @param path JSON ファイルの絶対パスです。
+	/// @param friendlyPath JSON ファイルの相対パスです。
+	/// @return JSON とデータタイプのペアを返します。ロードに失敗した場合は空のペアを返します。
 	[[nodiscard]]
 	static std::pair<JSON, String> LoadConfigJSON(const FilePathView path, const FilePathView friendlyPath)
 	{
@@ -37,8 +41,10 @@ void ConfigParser::addJSONParser(StringView dataType, std::function<std::unique_
 
 std::unique_ptr<IConfig> ConfigParser::parseJSON(FilePathView path, FilePathView friendlyPath)
 {
+	// path から JSON をロードします。
 	const auto [json, dataType] = LoadConfigJSON(path, friendlyPath);
 
+	// ロードした JSON のデータタイプをもとにパーサーを呼び出します。
 	if (auto it = m_jsonParsers.find(dataType);(it == m_jsonParsers.end()))
 	{
 		Editor::ShowError(U"データタイプ`{}`のパーサーが登録されていません。"_fmt(dataType));
