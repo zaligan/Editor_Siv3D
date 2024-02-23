@@ -20,5 +20,6 @@ public:
 	std::unique_ptr<IConfig> parseJSON(FilePathView path, FilePathView friendlyPath);
 
 private:
+	/// @brief dataType と　JSON パーサーのマップです。
 	HashTable<String, std::function<std::unique_ptr<IConfig>(const JSON&)>> m_jsonParsers;
 };
