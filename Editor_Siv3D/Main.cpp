@@ -6,7 +6,7 @@
 
 struct SolidColorBackground : IConfig
 {
-	static constexpr StringView DataType = U"solidColorBackgrond";
+	static constexpr StringView DataType = U"solidColorBackground";
 
 	ColorF color{ 1.0,1.0,1.0,1.0 };
 
